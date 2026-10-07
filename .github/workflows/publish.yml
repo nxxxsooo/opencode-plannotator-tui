@@ -1,0 +1,44 @@
+name: Publish
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Verify release tag
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          test "$GITHUB_REF_NAME" = "v$version"
+      - uses: ./.github/actions/setup-tui
+      - run: npm ci
+      - run: npm run check
+      - name: Check existing version
+        id: registry
+        shell: bash
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if integrity="$(npm view "$name@$version" dist.integrity 2>/dev/null)" && test -n "$integrity"; then
+            npm pack --ignore-scripts --json > "$RUNNER_TEMP/packed.json"
+            local_integrity="$(node -p "const packed = JSON.parse(require('fs').readFileSync(process.env.RUNNER_TEMP + '/packed.json', 'utf8')); (Array.isArray(packed) ? packed[0] : Object.values(packed)[0]).integrity")"
+            test "$integrity" = "$local_integrity"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish through trusted publishing
+        if: steps.registry.outputs.exists != 'true'
+        run: npm publish --access public

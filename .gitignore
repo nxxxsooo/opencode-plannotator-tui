@@ -1,0 +1,6 @@
+node_modules/
+*.tgz
+*.log
+__pycache__/
+.local/
+.DS_Store

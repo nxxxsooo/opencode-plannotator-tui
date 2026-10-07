@@ -1,0 +1,28 @@
+{
+  "name": "opencode-plannotator-tui",
+  "version": "0.2.0",
+  "description": "Unofficial OpenCode adapter for Plannotator TUI: annotate replies and documents without leaving your terminal.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./tui": "./tui.ts"
+  },
+  "scripts": {
+    "test": "node --test review.test.mjs",
+    "test:smoke": "python3 smoke.py",
+    "check": "node --check review.mjs && npm test && npm pack --dry-run",
+    "prepublishOnly": "npm run check"
+  },
+  "files": ["tui.ts", "review.mjs", "README.md", "LICENSE", "CHANGELOG.md"],
+  "engines": { "node": ">=22" },
+  "peerDependencies": { "@opencode/plugin": ">=2.0.22 <3" },
+  "peerDependenciesMeta": { "@opencode/plugin": { "optional": true } },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nxxxsooo/opencode-plannotator-tui.git"
+  },
+  "homepage": "https://github.com/nxxxsooo/opencode-plannotator-tui#readme",
+  "bugs": { "url": "https://github.com/nxxxsooo/opencode-plannotator-tui/issues" },
+  "keywords": ["opencode", "opencode-plugin", "plannotator", "tui", "annotation", "markdown", "review"],
+  "publishConfig": { "access": "public" }
+}

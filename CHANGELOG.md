@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Use an English command description in the slash menu and command palette.
+- Compare actual published file contents when checking an existing npm release,
+  avoiding false failures from platform-specific tar/gzip encoding.
+
 ## 0.2.0
 
 Initial public release of the OpenCode adapter for Plannotator TUI.

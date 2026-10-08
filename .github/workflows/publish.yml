@@ -25,16 +25,20 @@ jobs:
       - uses: ./.github/actions/setup-tui
       - run: npm ci
       - run: npm run check
+      - run: python3 scripts/verify-package.test.py
       - name: Check existing version
         id: registry
         shell: bash
         run: |
           name="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
-          if integrity="$(npm view "$name@$version" dist.integrity 2>/dev/null)" && test -n "$integrity"; then
-            npm pack --ignore-scripts --json > "$RUNNER_TEMP/packed.json"
-            local_integrity="$(node -p "const packed = JSON.parse(require('fs').readFileSync(process.env.RUNNER_TEMP + '/packed.json', 'utf8')); (Array.isArray(packed) ? packed[0] : Object.values(packed)[0]).integrity")"
-            test "$integrity" = "$local_integrity"
+          if published="$(npm view "$name@$version" dist.tarball 2>/dev/null)" && test -n "$published"; then
+            mkdir -p "$RUNNER_TEMP/package-check"
+            npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/package-check"
+            curl --fail --location --retry 3 "$published" --output "$RUNNER_TEMP/package-check/registry.tgz"
+            python3 scripts/verify-package.py \
+              "$RUNNER_TEMP/package-check/$name-$version.tgz" \
+              "$RUNNER_TEMP/package-check/registry.tgz"
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"

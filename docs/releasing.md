@@ -25,7 +25,8 @@ evidence that OIDC publication has been exercised; verify that on the next relea
 3. Commit the exact release state and create its `v<version>` tag. Push the branch and tag.
 4. Watch `publish.yml`. It validates the tag, runs checks and publishes through OIDC.
 5. If that version already exists (for example, the bootstrap), the workflow
-   compares its registry integrity with the local package before skipping the upload.
+   compares published file bytes and executable bits with the local package before
+   skipping the upload. Compressed archive checksums can differ between platforms.
 6. Verify `npm view opencode-plannotator-tui version dist-tags --json`, then create
    the matching GitHub Release with user-facing changes and install/update commands.
 7. Refresh the maintainer's installation:

@@ -1,6 +1,6 @@
 {
   "name": "opencode-plannotator-tui",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Unofficial OpenCode adapter for Plannotator TUI: annotate replies and documents without leaving your terminal.",
   "license": "MIT",
   "type": "module",

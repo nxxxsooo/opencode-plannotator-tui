@@ -14,7 +14,7 @@ export default Plugin.define({
           commands: [{
             id: "opencode-plannotator-tui.annotate",
             title: "Annotate reply or document (TUI)",
-            description: "批注回复或文档；可填写文件路径，按 q 返回后确认发送",
+            description: "Annotate the last reply or a file; press q, then confirm to send",
             group: "Plannotator",
             palette: true,
             slash: { name: "annotate", aliases: ["annotate-last"], arguments: true },

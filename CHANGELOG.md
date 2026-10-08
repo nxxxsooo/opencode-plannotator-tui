@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2
+
+- All confirmation dialogs, status notices, errors, and the feedback header sent
+  to the assistant are now in English.
+
 ## 0.2.1
 
 - Use an English command description in the slash menu and command palette.

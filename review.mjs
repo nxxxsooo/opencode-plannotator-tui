@@ -15,26 +15,26 @@ async function documentSource(input, client, sessionID, signal) {
     target = target.slice(1, -1)
   }
   if (!target || !documentExtensions.has(path.extname(target).toLowerCase())) {
-    throw new Error("请指定一个 Markdown 或纯文本文件（.md、.mdx、.markdown、.txt）。")
+    throw new Error("Choose a Markdown or plain-text file (.md, .mdx, .markdown, .txt).")
   }
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(target)) throw new Error("请指定本地文件路径。")
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(target)) throw new Error("Use a local file path.")
   if (target.startsWith("~/")) target = path.join(os.homedir(), target.slice(2))
   const session = await client.session.get({ sessionID }, { signal })
   const directory = session.location?.directory
-  if (!path.isAbsolute(target) && !directory) throw new Error("无法确定当前会话的工作目录。")
+  if (!path.isAbsolute(target) && !directory) throw new Error("Can't determine the current session's working directory.")
   const filePath = path.isAbsolute(target) ? path.normalize(target) : path.resolve(directory, target)
   try {
     const info = await stat(filePath)
-    if (!info.isFile()) throw new Error("目标不是文件。")
-    if (info.size > maxDocumentBytes) throw new Error("文件超过 2 MiB，请先选取较小的文档。")
+    if (!info.isFile()) throw new Error("The target is not a file.")
+    if (info.size > maxDocumentBytes) throw new Error("The file is larger than 2 MiB. Choose a smaller document.")
     const bytes = await readFile(filePath, { signal })
-    if (bytes.length > maxDocumentBytes) throw new Error("文件超过 2 MiB。")
-    if (bytes.includes(0)) throw new Error("文件包含二进制内容。")
+    if (bytes.length > maxDocumentBytes) throw new Error("The file is larger than 2 MiB.")
+    if (bytes.includes(0)) throw new Error("The file contains binary content.")
     let text
     try {
       text = new TextDecoder("utf-8", { fatal: true }).decode(bytes)
     } catch {
-      throw new Error("请使用 UTF-8 编码的文本文件。")
+      throw new Error("Use a UTF-8 text file.")
     }
     return {
       text, filePath,
@@ -43,7 +43,7 @@ async function documentSource(input, client, sessionID, signal) {
     }
   } catch (error) {
     if (signal.aborted) throw error
-    throw new Error(`无法读取文档「${filePath}」：${error.code === "ENOENT" ? "文件不存在。" : error.message}`)
+    throw new Error(`Can't read document "${filePath}": ${error.code === "ENOENT" ? "file not found." : error.message}`)
   }
 }
 
@@ -71,7 +71,7 @@ async function latestReply(client, sessionID, signal) {
     const reply = selectReply(page.data)
     if (reply) return reply
     cursor = page.cursor?.next
-    if (cursor && seen.has(cursor)) throw new Error("读取会话历史时收到重复分页游标。")
+    if (cursor && seen.has(cursor)) throw new Error("Session history returned a repeated page cursor.")
     seen.add(cursor)
   } while (cursor)
 }
@@ -88,7 +88,7 @@ async function archivedNotes(data) {
 
 async function interactive({ binary, file, cwd, env, signal }) {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    throw new Error("请在 OpenCode 完整终端界面中运行 /annotate。")
+    throw new Error("Run /annotate in the full OpenCode terminal interface.")
   }
   await new Promise((resolve, reject) => {
     const child = spawn(binary, [file], { cwd, env, stdio: "inherit", signal })
@@ -111,10 +111,10 @@ export function createReviewCommand(context, options = {}) {
 
   async function run(input = "") {
     if (disposed) return
-    if (active) return notice("已有批注正在进行。")
+    if (active) return notice("An annotation is already in progress.")
     // Capture before the first await: changing tabs must never redirect a review.
     const route = context.ui.router.current()
-    if (route.type !== "session") return notice("请先打开一个会话。")
+    if (route.type !== "session") return notice("Open a session first.")
     const sessionID = route.sessionID
     const title = context.data.session.get(sessionID)?.title ?? sessionID
     const controller = new AbortController()
@@ -129,7 +129,7 @@ export function createReviewCommand(context, options = {}) {
         ? await documentSource(target, context.client, sessionID, controller.signal)
         : await latestReply(context.client, sessionID, controller.signal)
       if (controller.signal.aborted) return
-      if (!source) return notice("当前会话还没有已完成的助手回复。")
+      if (!source) return notice("This session has no completed assistant reply yet.")
 
       directory = await mkdtemp(path.join(options.tempRoot ?? os.tmpdir(), "opencode-annotate-"))
       keepDraft = true
@@ -171,42 +171,42 @@ export function createReviewCommand(context, options = {}) {
       })
       const feedback = stdout.trim()
       const archived = await archivedNotes(data)
-      const retainedArchive = archived ? `\n${archived} 条归档批注保留在 ${directory}。` : ""
+      const retainedArchive = archived ? `\n${archived} archived ${archived === 1 ? "note was" : "notes were"} kept in ${directory}.` : ""
       // Upstream 0.9.4 emits this sentinel rather than empty stdout.
       if (!feedback || feedback === "No annotations.") {
         keepDraft = archived > 0
-        return notice(archived ? `没有待发送的批注。${retainedArchive}` : "没有批注，已返回会话。", archived ? "warning" : "info")
+        return notice(archived ? `No annotations to send.${retainedArchive}` : "No annotations. Returned to the session.", archived ? "warning" : "info")
       }
-      if (!feedback.startsWith("# Annotations on ")) throw new Error("无法识别 TUI 的批注导出格式。")
+      if (!feedback.startsWith("# Annotations on ")) throw new Error("Can't recognize the TUI annotation export format.")
       const subject = source.filePath
-        ? `以下是我对文档 ${JSON.stringify(source.filePath)} 的批注，请按反馈处理该文件。\n批注基于打开时的文档快照（SHA-256：${source.sourceHash}）；修改前请重新读取原文件并核对引用。`
-        : `以下是我对你回复 ${source.id} 的批注，请按反馈处理。`
+        ? `Here are my annotations on the document ${JSON.stringify(source.filePath)}. Please apply the feedback to that file.\nThe annotations are based on a snapshot taken when the document was opened (SHA-256: ${source.sourceHash}). Re-read the file and check the quoted text before editing.`
+        : `Here are my annotations on your reply ${source.id}. Please address the feedback.`
       const text = `${subject}\n\n${feedback}`
       const feedbackPath = path.join(directory, "feedback.md")
       await writeFile(feedbackPath, text, { mode: 0o600 })
       const count = (feedback.match(/^## Annotation /gm) ?? []).length
       const confirmed = await context.ui.dialog.confirm({
-        title: "发送批注？",
-        message: `${source.filePath ? `文档：${source.filePath}\n` : ""}将 ${count} 条批注发送到「${title}」，并让助手继续处理？`,
-        label: { confirm: "发送并继续", cancel: "取消" },
+        title: "Send annotations?",
+        message: `${source.filePath ? `Document: ${source.filePath}\n` : ""}Send ${count} ${count === 1 ? "annotation" : "annotations"} to "${title}" and let the assistant continue?`,
+        label: { confirm: "Send and continue", cancel: "Cancel" },
       })
       if (controller.signal.aborted) return
       if (confirmed !== true) {
         keepDraft = archived > 0
-        return notice(`已取消发送。${retainedArchive}`)
+        return notice(`Sending cancelled.${retainedArchive}`)
       }
       await context.client.session.prompt({
         sessionID, id: promptID, text, delivery: "queue", resume: true,
       })
       keepDraft = archived > 0
-      notice(`已发送 ${count} 条批注。${retainedArchive}`, "success")
+      notice(`Sent ${count} ${count === 1 ? "annotation" : "annotations"}.${retainedArchive}`, "success")
     } catch (error) {
       if (!disposed) {
         const detail = error?.code === "ENOENT"
-          ? "找不到 plannotator-tui；请检查安装和 PATH。"
+          ? "Can't find plannotator-tui. Check that it is installed and on PATH."
           : error instanceof Error ? error.message : String(error)
         const recovery = keepDraft && directory
-          ? `\n草稿保留在 ${directory}；若已导出，反馈文件为 feedback.md。`
+          ? `\nThe draft was kept in ${directory}. If it was exported, the feedback is in feedback.md.`
           : ""
         notice(`${detail}${recovery}`, "error")
       }

@@ -203,7 +203,7 @@ test("archived-only notes are preserved when upstream exports No annotations", a
   const name = (await readdir(data, { recursive: true })).find(name => name.endsWith("annotations.json"))
   const record = JSON.parse(await readFile(path.join(data, name), "utf8"))
   assert.equal(record.archived[0].body, "请补充具体例子。")
-  assert.ok(h.notices.some(n => n.message.includes("归档") && n.message.includes(h.root)))
+  assert.ok(h.notices.some(n => n.message.includes("archived") && n.message.includes(h.root)))
 })
 
 async function documentFolder(t) {
@@ -224,7 +224,7 @@ test("a quoted relative document uses the captured session directory and returns
   assert.equal(h.sent[0].sessionID, "ses_original")
   assert.ok(h.sent[0].text.includes(file))
   assert.match(h.sent[0].text, /# Annotations on 设计 方案\.md/)
-  assert.match(h.sent[0].text, /快照/)
+  assert.match(h.sent[0].text, /snapshot/)
   assert.doesNotMatch(h.sent[0].text, /msg_final/)
   assert.equal(await readFile(file, "utf8"), text)
   assert.deepEqual(await readdir(h.root), [])
@@ -263,7 +263,7 @@ for (const invalid of ["missing.md", "directory.md", "binary.txt", "large.txt"])
     assert.equal(h.pages(), 0)
     const error = h.notices.find(n => n.variant === "error")
     assert.ok(error, "A document error must be visible")
-    assert.doesNotMatch(error.message, /找不到 plannotator-tui/)
+    assert.doesNotMatch(error.message, /Can't find plannotator-tui/)
     assert.deepEqual(await readdir(h.root), [])
   })
 }

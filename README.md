@@ -61,8 +61,8 @@ Manual configuration, preserving other entries:
 3. Press `c` to comment, `a` for “looks good,” or `d` to request deletion.
    Without a selection, `c` comments on the current block. Enter saves a comment.
 4. Press **`q`** to return to OpenCode.
-5. Choose **发送并继续** (“Send and continue”) to submit the annotations. Escape or
-   **取消** cancels. The adapter's confirmation and status messages are currently Chinese.
+5. Choose **Send and continue** to submit the annotations. Escape or **Cancel**
+   cancels.
 
 The upstream **`E`** action copies to the clipboard. This adapter's automatic
 delivery path is **q → confirm** and does not need clipboard access.
@@ -162,7 +162,7 @@ See [release instructions](docs/releasing.md) and [changelog](CHANGELOG.md).
 - `/annotate`：批注上一条完整回复。
 - `/annotate 文档.md`：批注文档，支持中文、空格和相对路径。
 - `/annotate-last`：同义入口，也可带文件路径。
-- 选中文字 → `c` 写批注 → Enter 保存 → `q` 返回 →「发送并继续」。
+- 选中文字 → `c` 写批注 → Enter 保存 → `q` 返回 →「Send and continue」。
 - 文档采用独立快照，反馈附原文件路径，确认后发回发起批注的会话。
 - 更新：`opencode plugin update opencode-plannotator-tui@latest`，然后重新打开终端客户端。
 

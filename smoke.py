@@ -114,9 +114,9 @@ export default {{
     open_review("review-open")
     annotate("SMOKE exact-session feedback", "note-created")
     keys("q")
-    wait("发送批注", "confirmation")
+    wait("Send annotations?", "confirmation")
     keys("Enter")
-    wait("已发送 1 条批注", "sent")
+    wait("Sent 1 annotation", "sent")
     inbox = api("get", f"/api/session/{session}/inbox")
     (root / "inbox.json").write_text(json.dumps(inbox, ensure_ascii=False, indent=2))
     encoded = json.dumps(inbox, ensure_ascii=False)
@@ -125,16 +125,16 @@ export default {{
 
     open_review("empty-open", "/annotate")
     keys("q")
-    wait("没有批注", "empty-return")
+    wait("No annotations", "empty-return")
     after_empty = api("get", f"/api/session/{session}/inbox")
     assert after_empty == inbox, "Empty review changed the inbox"
 
     open_review("cancel-open")
     annotate("SMOKE must not be sent", "cancel-note")
     keys("q")
-    wait("发送批注", "cancel-confirmation")
+    wait("Send annotations?", "cancel-confirmation")
     keys("Escape")
-    wait("已取消发送", "cancel-return")
+    wait("Sending cancelled", "cancel-return")
     after_cancel = api("get", f"/api/session/{session}/inbox")
     assert after_cancel == inbox, "Cancelled review changed the inbox"
 
@@ -144,9 +144,9 @@ export default {{
     open_review("document-open", '/annotate "文档 sample.md"', document.name)
     annotate("SMOKE document feedback", "document-note")
     keys("q")
-    wait("文档：", "document-confirmation")
+    wait("Document:", "document-confirmation")
     keys("Enter")
-    wait("已发送 1 条批注", "document-sent")
+    wait("Sent 1 annotation", "document-sent")
     document_inbox = api("get", f"/api/session/{session}/inbox")
     encoded = json.dumps(document_inbox, ensure_ascii=False)
     assert "SMOKE document feedback" in encoded, encoded
@@ -155,7 +155,7 @@ export default {{
 
     open_review("document-alias", '/annotate-last "文档 sample.md"', document.name)
     keys("q")
-    wait("没有批注", "document-alias-return")
+    wait("No annotations", "document-alias-return")
     assert api("get", f"/api/session/{session}/inbox") == document_inbox
 
     print(json.dumps({"passed": ["real TUI launch", "create annotation", "terminal restore",
